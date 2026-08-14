@@ -1,0 +1,27 @@
+name: Documentation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Markdown fences
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            count=$(grep -F -o "$(printf '\x60\x60\x60')" "$file" | wc -l || true)
+            test $((count % 2)) -eq 0 || { echo "Unbalanced code fence: $file"; exit 1; }
+          done < <(find docs -type f -name '*.md' -print0)
+      - name: Check for common secret patterns
+        run: |
+          ! git grep -n -E 'ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk_live_[A-Za-z0-9]{10,}|whsec_[A-Za-z0-9]{10,}|BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY' -- '*.md'

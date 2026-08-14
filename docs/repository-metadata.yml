@@ -1,0 +1,20 @@
+repository: media
+description: "Media & File Storage da Operaon para metadados de arquivos, objetos, uploads e downloads seguros."
+homepage: "https://github.com/operaon/media"
+topics:
+  - operaon
+  - media-storage
+  - file-storage
+  - uploads
+  - s3
+  - nodejs
+custom_properties:
+  domain_owner: media
+  repository_type: module
+  lifecycle: active
+  documentation: docs/INDEX.md
+  security_tier: standard
+  default_branch: main
+notes:
+  - "Homepage uses the repository URL until an official public product URL is defined."
+  - "Stars, watchers, forks and audit history are GitHub-managed metrics and are not programmable repository content."

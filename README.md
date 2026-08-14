@@ -1,4 +1,15 @@
-# Operaon Media & File Storage
+# Media & File Storage
+
+> Media & File Storage da Operaon para metadados de arquivos, objetos, uploads e downloads seguros.
+
+| Item | Referência |
+|---|---|
+| Documentação | [docs/INDEX.md](docs/INDEX.md) |
+| Segurança | [SECURITY.md](SECURITY.md) |
+| Contribuição | [CONTRIBUTING.md](CONTRIBUTING.md) |
+| Processo de release | [docs/release-process.md](docs/release-process.md) |
+
+---
 
 Standalone responsável pelo catálogo de metadados, upload, leitura autenticada, URLs presignadas, visibilidade pública controlada, exclusão lógica e ciclo de vida dos objetos de mídia da Operaon. O serviço possui banco próprio e usa armazenamento S3-compatible/MinIO isolado do gateway.
 
