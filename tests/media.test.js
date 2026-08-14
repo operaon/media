@@ -4,7 +4,7 @@ process.env.NODE_ENV = 'test';
 process.env.SERVICE_API_KEY = 'media-test-service-key';
 process.env.JWT_SECRET = 'media-test-jwt-secret-change-me';
 process.env.JWT_ISSUER = 'operaon-identity';
-process.env.JWT_AUDIENCE = 'operaon-api,operaon-identity,operaon-media';
+process.env.JWT_AUDIENCE = 'operaon-media';
 process.env.MINIO_BUCKET = 'operaon-media-test';
 
 jest.mock('../src/config/database', () => ({
@@ -87,6 +87,18 @@ const mediaObject = (overrides = {}) => ({
 
 beforeEach(() => {
   jest.clearAllMocks();
+});
+
+test('rejeita token destinado a outra audience', async () => {
+  const wrongAudience = jwt.sign({ sub: '44444444-4444-4444-8444-444444444444', tokenType: 'access', tenantId, permissions: ['media:read'] }, process.env.JWT_SECRET, { issuer: process.env.JWT_ISSUER, audience: 'operaon-api' });
+  const response = await request(app).get('/api/objects').set({ 'X-Service-Key': process.env.SERVICE_API_KEY, Authorization: `Bearer ${wrongAudience}`, 'X-Tenant-Id': tenantId });
+  expect(response.status).toBe(401);
+});
+
+test('não concede bypass universal a token de serviço', async () => {
+  const serviceToken = jwt.sign({ sub: '44444444-4444-4444-8444-444444444444', tokenType: 'access', service: true, tenantId, permissions: [] }, process.env.JWT_SECRET, { issuer: process.env.JWT_ISSUER, audience: 'operaon-media' });
+  const response = await request(app).get('/api/objects').set({ 'X-Service-Key': process.env.SERVICE_API_KEY, Authorization: `Bearer ${serviceToken}`, 'X-Tenant-Id': tenantId });
+  expect(response.status).toBe(403);
 });
 
 test('faz upload multipart e cria metadados no catálogo próprio', async () => {
