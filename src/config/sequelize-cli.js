@@ -11,7 +11,10 @@ const base = {
 
 module.exports = {
   development: { ...base },
-  test: { ...base, database: process.env.DB_NAME || 'operaon_media_test' },
+  test: {
+    ...base,
+    database: process.env.TEST_DB_NAME || process.env.DB_NAME || `${base.database}_test`,
+  },
   production: process.env.DATABASE_URL
     ? { url: process.env.DATABASE_URL, dialect: 'postgres', dialectOptions: process.env.DB_SSL === 'true' ? { ssl: { require: true, rejectUnauthorized: true } } : {} }
     : { ...base, dialectOptions: process.env.DB_SSL === 'true' ? { ssl: { require: true, rejectUnauthorized: true } } : {} },
