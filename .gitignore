@@ -1,0 +1,10 @@
+node_modules/
+coverage/
+*.log
+npm-debug.log*
+.DS_Store
+
+# Banco e artefatos locais
+*.sqlite
+*.sqlite3
+.tmp/
