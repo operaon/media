@@ -128,3 +128,8 @@ npm run migrate:objects
 ```
 
 A suíte cobre upload multipart, idempotência, isolamento de tenant, URLs privadas e RBAC dinâmico. O serviço registra `X-Request-Id`, usa logs estruturados com Pino, aplica Helmet, compressão, CORS configurável, rate limit operacional e readiness com verificação do banco próprio e do bucket de destino.
+
+<!-- OPERAON-DOCUMENTATION-LINK -->
+## Documentação
+
+A documentação técnica padronizada está em [docs/INDEX.md](docs/INDEX.md). Ela inclui arquitetura, responsabilidades, segurança, contratos, operação, testes, runbooks e decisões.

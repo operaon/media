@@ -64,3 +64,7 @@ O Gateway remove headers internos recebidos de clientes externos e os recria. Um
 ## Compatibilidade
 
 Durante a migração, `X-Service-Key` permanece aceito somente nos endpoints internos já publicados. Novos fluxos devem usar JWT de serviço e, em produção, mTLS. A remoção das chaves legadas exige uma janela de migração, métricas de uso e revogação controlada.
+
+## Referências
+
+[1]: https://github.com/operaon "Organização Operaon"
