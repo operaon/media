@@ -9,7 +9,10 @@ const env = require('./config/env');
 const objectStore = require('./services/objectStore');
 const { ValidationError } = require('./utils/errors');
 
+const { communicationContext } = require('./middlewares/communicationContext');
+
 const app = express();
+app.use(communicationContext);
 app.disable('x-powered-by');
 app.set('trust proxy', env.trustProxyHops);
 app.use(helmet());
