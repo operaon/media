@@ -8,3 +8,9 @@ npm-debug.log*
 *.sqlite
 *.sqlite3
 .tmp/
+
+# Environment files (never commit)
+.env
+.env.*
+!.env.example
+!.env.template
