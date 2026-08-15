@@ -22,24 +22,27 @@ const captureRawBody = (req, _res, buffer) => {
   if (buffer?.length) req.rawBody = Buffer.from(buffer);
 };
 
-const signWebhook = ({ body, secret, timestamp, prefix = 'v1' }) => {
+const signWebhook = ({ body, secret, timestamp, nonce, prefix = 'v1' }) => {
   if (!secret) throw new Error('Segredo de webhook não configurado');
   const bodyBuffer = Buffer.isBuffer(body) ? body : Buffer.from(typeof body === 'string' ? body : JSON.stringify(body || {}));
   const timestampValue = String(timestamp || Math.floor(Date.now() / 1000));
-  const digest = crypto.createHmac('sha256', secret).update(`${timestampValue}.${bodyBuffer.toString('utf8')}`).digest('hex');
+  const nonceValue = String(nonce || '');
+  if (!nonceValue) throw new Error('Nonce de webhook não configurado');
+  const digest = crypto.createHmac('sha256', secret).update(`${timestampValue}.${nonceValue}.${bodyBuffer.toString('utf8')}`).digest('hex');
   return `${prefix}=${digest}`;
 };
 
 const buildWebhookHeaders = ({ body, secret, webhookId = generatedId(), keyId = process.env.WEBHOOK_KEY_ID || process.env.COMMUNICATION_KEY_ID || 'default', eventType = 'integration.event', eventVersion = 1, correlationId = generatedId(), deliveryAttempt = 1 } = {}) => {
   const timestamp = Math.floor(Date.now() / 1000);
+  const nonce = generatedId();
   return {
     Accept: 'application/json',
     'Content-Type': 'application/json',
     'X-Webhook-Id': webhookId,
     'X-Webhook-Key-Id': keyId,
     'X-Webhook-Timestamp': String(timestamp),
-    'X-Webhook-Nonce': generatedId(),
-    'X-Webhook-Signature': signWebhook({ body, secret, timestamp }),
+    'X-Webhook-Nonce': nonce,
+    'X-Webhook-Signature': signWebhook({ body, secret, timestamp, nonce }),
     'X-Event-Type': eventType,
     'X-Event-Version': String(eventVersion),
     'X-Correlation-Id': correlationId,
@@ -62,10 +65,13 @@ const verifyWebhookSignature = (req, { secret, toleranceSeconds = DEFAULT_TOLERA
 
   const signatureHeader = req.headers?.[HEADER.webhookSignature];
   const timestampHeader = req.headers?.[HEADER.webhookTimestamp];
+  const nonce = safeValue(req.headers?.[HEADER.webhookNonce]);
   const parsed = parseSignature(signatureHeader);
   const timestamp = parsed.timestamp || timestampHeader;
   const signature = parsed.signature;
-  if (requireSignature && (!timestamp || !signature)) return { valid: false, reason: 'WEBHOOK_SIGNATURE_MISSING' };
+  if (requireSignature && (!timestamp || !nonce || !signature)) {
+    return { valid: false, reason: !nonce ? 'WEBHOOK_NONCE_MISSING' : 'WEBHOOK_SIGNATURE_MISSING' };
+  }
 
   if (timestamp) {
     const timestampNumber = Number(timestamp);
@@ -75,14 +81,14 @@ const verifyWebhookSignature = (req, { secret, toleranceSeconds = DEFAULT_TOLERA
   }
 
   if (signature) {
-    const expected = signWebhook({ body: rawBody(req), secret, timestamp });
+    const expected = signWebhook({ body: rawBody(req), secret, timestamp, nonce });
     if (!safeEqual(signature, expected.split('=').slice(1).join('='))) return { valid: false, reason: 'WEBHOOK_SIGNATURE_INVALID' };
   }
 
   const webhookId = safeValue(req.headers?.[HEADER.webhookId]);
   if (requireSignature && !webhookId) return { valid: false, reason: 'WEBHOOK_ID_MISSING' };
 
-  return { valid: true, webhookId, timestamp: timestamp || null };
+  return { valid: true, webhookId, timestamp: timestamp || null, nonce };
 };
 
 const webhookContext = (req, res, next) => {
