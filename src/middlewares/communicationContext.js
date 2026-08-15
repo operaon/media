@@ -9,6 +9,7 @@ const HEADER = Object.freeze({
   tenantId: 'x-tenant-id',
   organizationId: 'x-organization-id',
   correlationId: 'x-correlation-id',
+  traceId: 'x-trace-id',
   requestId: 'x-request-id',
   sourceSystem: 'x-source-system',
   sourceId: 'x-source-id',
@@ -40,6 +41,7 @@ const generatedId = () => crypto.randomUUID();
 const getRequestContext = (req = {}) => {
   const requestId = safeValue(req.headers?.[HEADER.requestId]) || generatedId();
   const correlationId = safeValue(req.headers?.[HEADER.correlationId]) || requestId;
+  const traceId = safeValue(req.headers?.[HEADER.traceId]) || correlationId;
   const serviceId = safeValue(req.headers?.[HEADER.serviceId]);
   const sourceSystem = safeValue(req.headers?.[HEADER.sourceSystem]) || serviceId || null;
   const eventId = safeValue(req.headers?.[HEADER.eventId]);
@@ -48,6 +50,7 @@ const getRequestContext = (req = {}) => {
   return {
     requestId,
     correlationId,
+    traceId,
     serviceId,
     keyId: safeValue(req.headers?.[HEADER.keyId]),
     protocolVersion: safeValue(req.headers?.[HEADER.protocolVersion]) || '1',
@@ -69,9 +72,11 @@ const communicationContext = (req, res, next) => {
   req.communicationContext = context;
   req.requestId = context.requestId;
   req.correlationId = context.correlationId;
+  req.traceId = context.traceId;
 
   res.setHeader('X-Request-Id', context.requestId);
   res.setHeader('X-Correlation-Id', context.correlationId);
+  res.setHeader('X-Trace-Id', context.traceId);
   res.setHeader('X-Protocol-Version', context.protocolVersion);
 
   next();
@@ -95,6 +100,7 @@ const buildInternalHeaders = ({
 } = {}) => {
   const requestId = safeValue(context.requestId) || generatedId();
   const correlationId = safeValue(context.correlationId) || requestId;
+  const traceId = safeValue(context.traceId) || correlationId;
   const resolvedServiceId = safeValue(serviceId) || 'operaon-service';
   const resolvedSourceSystem = safeValue(sourceSystem || context.sourceSystem) || resolvedServiceId;
   const resolvedSourceId = safeValue(sourceId || context.sourceId) || requestId;
@@ -110,6 +116,7 @@ const buildInternalHeaders = ({
     'X-Protocol-Version': safeValue(context.protocolVersion) || '1',
     'X-Request-Id': requestId,
     'X-Correlation-Id': correlationId,
+    'X-Trace-Id': traceId,
     'X-Source-System': resolvedSourceSystem,
     'X-Source-Id': resolvedSourceId,
     'X-Event-Id': resolvedEventId,
@@ -139,6 +146,7 @@ const buildEventEnvelope = ({ eventType, eventVersion = 1, payload, context = {}
   tenantId: safeValue(tenantId || context.tenantId) || null,
   organizationId: safeValue(organizationId || context.organizationId) || null,
   correlationId: safeValue(context.correlationId) || safeValue(context.requestId) || generatedId(),
+  traceId: safeValue(context.traceId) || safeValue(context.correlationId) || safeValue(context.requestId) || generatedId(),
   occurredAt: new Date().toISOString(),
   payload
 });
