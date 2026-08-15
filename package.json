@@ -33,7 +33,7 @@
     "pg-hstore": "^2.3.4",
     "pino": "^9.9.0",
     "sequelize": "^6.37.7",
-    "zod": "^3.25.67"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "jest": "^30.0.4",
