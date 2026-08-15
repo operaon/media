@@ -16,7 +16,7 @@ const parsePositiveInt = (name, fallback, min = 1) => {
 };
 
 const host = process.env.HOST || '0.0.0.0';
-const port = parsePositiveInt('PORT', 4770);
+const port = parsePositiveInt('PORT', 4790);
 if (port > 65535) throw new Error('PORT inválida');
 const jwtAlgorithm = process.env.JWT_ALGORITHM || 'HS256';
 if (!['HS256', 'RS256', 'EdDSA'].includes(jwtAlgorithm)) throw new Error('JWT_ALGORITHM deve ser HS256, RS256 ou EdDSA');
